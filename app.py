@@ -42,7 +42,7 @@ if db_connected:
 else:
     st.sidebar.warning("⚠️ Running in Offline UI Mode")
 
-# Visual Tabs (Tabs 1-3 for Data & Pipeline, Tab 4 for Central Master Brain Chat)
+# Visual Tabs
 tab1, tab2, tab3, tab4 = st.tabs([
     "📊 Channels Overview", 
     "📜 Scripts & Content Pipeline", 
@@ -54,7 +54,8 @@ with tab1:
     st.subheader(f"Performance Metrics for: {selected_channel}")
     if db_connected:
         try:
-            res = supabase.table("channels").select("*").execute()
+            # Filter channels table data strictly by selected channel name or id
+            res = supabase.table("channels").select("*").eq("channel_name", selected_channel).execute()
             st.dataframe(res.data, use_container_width=True)
         except Exception:
             st.info("Channels table loading...")
@@ -63,10 +64,14 @@ with tab2:
     st.subheader(f"Content Pipeline Data ({selected_channel})")
     if db_connected:
         try:
-            res = supabase.table("scripts_and_videos").select("*").execute()
-            st.dataframe(res.data, use_container_width=True)
+            # Filter scripts/videos table by channel_id (assuming channel_id column exists in scripts_and_videos)
+            res = supabase.table("scripts_and_videos").select("*").eq("channel_id", current_channel_id).execute()
+            if res.data:
+                st.dataframe(res.data, use_container_width=True)
+            else:
+                st.info(f"No pipeline data found for {selected_channel} yet.")
         except Exception:
-            st.info("Scripts table loading...")
+            st.info("Scripts table loading or filter pending...")
 
 with tab3:
     st.subheader("Human-in-the-Loop Approval Gate")
@@ -98,7 +103,7 @@ with tab4:
         Be conversational, active, and helpful like a best friend.
         """
 
-        with st.chat_message("assistant"):
+with st.chat_message("assistant"):
             with st.spinner("Master Brain processing via OpenRouter -> Groq -> Gemini..."):
                 reply_text, active_llm = call_master_brain(user_prompt, system_instruction)
                 bot_reply = f"{reply_text}\n\n*— Powered by: {active_llm}*"
