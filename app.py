@@ -1,6 +1,8 @@
 import streamlit as st
+import os
 from supabase import create_client, Client
 from llm_engine import call_master_brain
+from voice_engine import generate_xtts_voice, generate_bark_voice
 
 # Page Config
 st.set_page_config(page_title="Doraemon MAS Control Hub", page_icon="🤖", layout="wide")
@@ -14,6 +16,14 @@ try:
 except Exception as e:
     db_connected = False
     st.sidebar.error(f"❌ Supabase Connection Error: {e}")
+
+# Database-e message save korar helper function
+def save_message_to_db(role, content):
+    if db_connected:
+        try:
+            supabase.table("chat_history").insert({"role": role, "content": content}).execute()
+        except Exception as e:
+            print(f"DB Save Error: {e}")
 
 # Core Mission Header
 st.markdown("### 🎯 Core Mission Metric: **Watch Time + Viewer Satisfaction 100% Guaranteed** (Zero Clickbait)")
@@ -32,7 +42,7 @@ if db_connected:
     except Exception:
         pass
 
-# Sidebar Channel Selector (For Data Isolation viewing)
+# Sidebar Channel Selector
 st.sidebar.title("🤖 Doraemon MAS Engine")
 selected_channel = st.sidebar.selectbox("📁 Select Channel Data View", channel_list)
 current_channel_id = channel_dict.get(selected_channel, "general_room")
@@ -42,7 +52,7 @@ if db_connected:
 else:
     st.sidebar.warning("⚠️ Running in Offline UI Mode")
 
-# Visual Tabs (Tab 1 is Central Master Doraemon Brain, Tabs 2-4 for Data & Pipeline)
+# Visual Tabs
 tab1, tab2, tab3, tab4 = st.tabs([
     "🧠 Central Master Doraemon Brain", 
     "📊 Channels Overview", 
@@ -54,11 +64,28 @@ with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
     st.write("Kotha hobe ekdom Central Master Brain-er sathe. Apni je kono channel-er byapare ekhane command dite parben.")
 
-    # Initialize Central Chat History
+    # Visual Doraemon Animated Avatar Display
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        st.image("https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z2anJ5OGZ3czJ4N255bnF3bmJ1bWF3aXZ5OTN5MXI2Zm56eXBwciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhwkKBc99HUgjAP6/giphy.gif", width=120)
+    with col2:
+        st.info("🤖 **Doraemon Status:** Online & Ready to chat with emotional voice clone, Rini!")
+
+    # Load Chat History from Supabase
     if "central_chat_history" not in st.session_state:
-        st.session_state.central_chat_history = [
-            {"role": "assistant", "content": "Namaskar Rini! Ami Doraemon, apnar Central Master Brain. Bolun, ajke kon channel-er ki kaj korbo?"}
-        ]
+        st.session_state.central_chat_history = []
+        if db_connected:
+            try:
+                res = supabase.table("chat_history").select("*").order("created_at", desc=False).execute()
+                if res.data:
+                    st.session_state.central_chat_history = [{"role": row["role"], "content": row["content"]} for row in res.data]
+            except Exception:
+                pass
+        
+        if not st.session_state.central_chat_history:
+            default_welcome = "Namaskar Rini! Ami Doraemon, apnar Central Master Brain. Bolun, ajke kon channel-er ki kaj korbo?"
+            st.session_state.central_chat_history = [{"role": "assistant", "content": default_welcome}]
+            save_message_to_db("assistant", default_welcome)
 
     for message in st.session_state.central_chat_history:
         with st.chat_message(message["role"]):
@@ -66,6 +93,8 @@ with tab1:
 
     if user_prompt := st.chat_input("Command Central Master Brain..."):
         st.session_state.central_chat_history.append({"role": "user", "content": user_prompt})
+        save_message_to_db("user", user_prompt)
+        
         with st.chat_message("user"):
             st.markdown(user_prompt)
 
@@ -73,16 +102,27 @@ with tab1:
         You are Doraemon, the Central Master Multi-Agent Orchestrator for Rini's YouTube system.
         Currently viewing data context: {selected_channel} (ID: {current_channel_id}).
         Strict Core Metric: 1. Maximize Watch Time, 2. Viewer Satisfaction. Zero clickbait.
-        Be conversational, active, and helpful like a best friend.
+        Be conversational, active, and helpful like a best friend. Always address her as Rini. Include emotional cues like [laughs] where natural.
         """
 
         with st.chat_message("assistant"):
-            with st.spinner("Master Brain processing via OpenRouter -> Groq -> Gemini..."):
+            with st.spinner("Master Brain processing & generating emotional voice..."):
                 reply_text, active_llm = call_master_brain(user_prompt, system_instruction)
                 bot_reply = f"{reply_text}\n\n*— Powered by: {active_llm}*"
                 
                 st.markdown(bot_reply)
+                
                 st.session_state.central_chat_history.append({"role": "assistant", "content": bot_reply})
+                save_message_to_db("assistant", bot_reply)
+                
+                # --- Voice Output Integration (XTTS / Bark) ---
+                try:
+                    # তুমি চাইলে generate_xtts_voice বা generate_bark_voice ব্যবহার করতে পারো
+                    audio_path = generate_xtts_voice(reply_text)
+                    if audio_path and os.path.exists(audio_path):
+                        st.audio(audio_path, format="audio/wav", autoplay=True)
+                except Exception as ex:
+                    st.caption(f"🔊 Voice generation note: {ex}")
 
 with tab2:
     st.subheader(f"Performance Metrics for: {selected_channel}")
