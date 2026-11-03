@@ -64,6 +64,22 @@ with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
     st.write("Kotha hobe ekdom Central Master Brain-er sathe. Apni je kono channel-er byapare ekhane command dite parben.")
 
+    # --- Interactive Mic Click Button & Full Visual Modal Popup (Added Here!) ---
+    if st.button("🎤 Click to Open Doraemon Live Voice Visual"):
+        st.balloons()
+        with st.expander("🤖 Doraemon Interactive Full Visual Mode", expanded=True):
+            col_v1, col_v2 = st.columns([1, 2])
+            with col_v1:
+                st.image("https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z2anJ5OGZ3czJ4N255bnF3bmJ1bWF3aXZ5OTN5MXI2Zm56eXBwciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhwkKBc99HUgjAP6/giphy.gif", width=160)
+            with col_v2:
+                st.markdown("### 🎙️ Doraemon is listening to you, Rini! Speak now...")
+                audio_input_file = st.file_uploader("Upload your voice note here (.wav/.mp3)", type=["wav", "mp3"])
+                if audio_input_file:
+                    st.success("Voice received! Processing thought through Master Brain...")
+                    # Future voice-to-text pipeline hookup can go here
+
+    st.write("---")
+
     # Visual Doraemon Animated Avatar Display
     col1, col2 = st.columns([1, 4])
     with col1:
@@ -115,9 +131,8 @@ with tab1:
                 st.session_state.central_chat_history.append({"role": "assistant", "content": bot_reply})
                 save_message_to_db("assistant", bot_reply)
                 
-                # --- Voice Output Integration (XTTS / Bark) ---
+                # --- Voice Output Integration (XTTS with Multi-Emotion .wav selection) ---
                 try:
-                    # তুমি চাইলে generate_xtts_voice বা generate_bark_voice ব্যবহার করতে পারো
                     audio_path = generate_xtts_voice(reply_text)
                     if audio_path and os.path.exists(audio_path):
                         st.audio(audio_path, format="audio/wav", autoplay=True)
