@@ -88,162 +88,26 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
 
-    # Custom HTML/JS Component with Local Doraemon GIF & Talk Toggle
-    doraemon_mic_html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: transparent;
-                text-align: center;
-                margin: 0;
-                padding: 10px;
-            }
-            .wrapper {
-                max-width: 550px;
-                margin: auto;
-            }
-            .talk-trigger-btn {
-                background: linear-gradient(135deg, #1f77b4, #2ca02c);
-                color: white;
-                border: none;
-                padding: 12px 28px;
-                border-radius: 30px;
-                font-size: 16px;
-                font-weight: bold;
-                cursor: pointer;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-                transition: 0.3s;
-                margin-bottom: 15px;
-            }
-            .talk-trigger-btn:hover {
-                transform: scale(1.05);
-            }
-            .card {
-                background: #f0f8ff;
-                border-radius: 15px;
-                padding: 20px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                border: 2px solid #1f77b4;
-                display: none;
-                align-items: center;
-                justify-content: space-around;
-            }
-            .card.active {
-                display: flex;
-            }
-            .img-container img {
-                width: 140px;
-                height: 140px;
-                border-radius: 50%;
-                object-fit: cover;
-                border: 4px solid #1f77b4;
-                transition: 0.3s;
-            }
-            .info-box {
-                text-align: left;
-                max-width: 260px;
-            }
-            .status {
-                font-weight: bold;
-                color: #333;
-                margin-top: 10px;
-                font-size: 13px;
-            }
-            .mic-btn {
-                background-color: #ff4b4b;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 25px;
-                font-size: 14px;
-                cursor: pointer;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                margin-top: 10px;
-                transition: 0.2s;
-            }
-            .mic-btn:hover {
-                background-color: #e03e3e;
-            }
-            .mic-btn.recording {
-                background-color: #28a745;
-            }
-        </style>
-    </head>
-    <body>
-
-    <div class="wrapper">
-        <!-- Main Talk with Doraemon Trigger Button -->
-        <button class="talk-trigger-btn" onclick="openDashboard()">🤖 Talk with Doraemon</button>
-
-        <!-- Hidden Dashboard that opens on click -->
-        <div class="card" id="voiceDashboard">
-            <div class="img-container">
-                <!-- Using local/relative doraemon.gif representation -->
-                <img id="doraemonImg" src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMml3bjF3YnYxdmhucmxreWZueHZ5NW51OWUzdjV4bXZrdXVnMWJjayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/eaQ8g94e5eNlK/giphy.gif" alt="Doraemon">
-            </div>
-            <div class="info-box">
-                <h3 style="margin:0; color:#1f77b4;">🎙️ Doraemon Active</h3>
-                <div class="status" id="statusText">Ami shonchi, Rini! Start Talking button click koro...</div>
-                <button class="mic-btn" id="micBtn" onclick="toggleRecord()">🎤 Start Talking</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let dashboardOpen = false;
-        let recording = false;
-
-        function openDashboard() {
-            const dash = document.getElementById("voiceDashboard");
-            dashboardOpen = !dashboardOpen;
-            if (dashboardOpen) {
-                dash.classList.add("active");
-            } else {
-                dash.classList.remove("active");
-            }
-        }
-
-        function toggleRecord() {
-            const btn = document.getElementById("micBtn");
-            const status = document.getElementById("statusText");
-            const img = document.getElementById("doraemonImg");
-
-            if (!recording) {
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        recording = true;
-                        btn.innerText = "🛑 Stop & Send";
-                        btn.classList.add("recording");
-                        status.innerText = "🎙️ Recording your voice, Rini...";
-                        img.style.borderColor = "#28a745";
-                    })
-                    .catch(err => {
-                        alert("Microphone permission required!");
-                    });
-            } else {
-                recording = false;
-                btn.innerText = "🎤 Start Talking";
-                btn.classList.remove("recording");
-                status.innerText = "✨ Processing & generating audio reply...";
-                img.style.borderColor = "#ff4b4b";
-
-                setTimeout(() => {
-                    status.innerText = "Ami ekhon ready achhi, Rini!";
-                }, 2000);
-            }
-        }
-    </script>
-
-    </body>
-    </html>
-    """
+    # Clean, Native Streamlit Layout (No broken HTML/JS iframes)
+    col_v1, col_v2 = st.columns([1, 2])
     
-    # Render component safely in Streamlit tab1
-    components.html(doraemon_mic_html, height=240)
-    
+    with col_v1:
+        # Local doraemon.gif file display
+        if os.path.exists("doraemon.gif"):
+            st.image("doraemon.gif", width=220)
+        else:
+            st.image("https://i.imgur.com/4AiXyZU.png", width=220)
+            
+    with col_v2:
+        st.markdown("### 🎙️ Doraemon Master Brain Active")
+        st.success("Ami ekhon shob bujhe felechi, Rini! Niche mic-e click kore kotha bolo ba chat box-e command dao—ami Kaggle GPU diye voice reply pathacchi!")
+        
+        # Native Streamlit Audio Input (100% Reliable Mic Recording)
+        audio_value = st.audio_input("🎤 Record Voice Note for Doraemon")
+        if audio_value:
+            st.info("Audio recorded successfully! Processing through Master Brain...")
+            # Ekhane audio file-ke backend-e pathanor ba text-e convert korar logic add kora jabe
+
     st.write("---")
 
     # Load Chat History from Session State / Supabase
@@ -274,23 +138,35 @@ with tab1:
         with st.chat_message("user"):
             st.markdown(user_prompt)
 
-        bot_reply = f"Ami tomar kotha bujhechi, Rini! '{user_prompt}' niye kaj shuru korchi."
+        system_instruction = f"""
+        You are Doraemon, the Central Master Multi-Agent Orchestrator for Rini's YouTube system.
+        Currently viewing data context: {selected_channel} (ID: {current_channel_id}).
+        Strict Core Metric: 1. Maximize Watch Time, 2. Viewer Satisfaction. Zero clickbait.
+        Language Rule: Strictly reply in the exact same language/script the user used (Bangla if user speaks Bangla, English if user speaks English, Banglish if user speaks Banglish).
+        Formatting Rule: Do NOT include any emotional action tags or brackets like [laughs], [waves excitedly], or [beeps happily]. Output clean plain text only.
+        Always address her as Rini. Be friendly, warm, and act like a best friend.
+        """
 
         with st.chat_message("assistant"):
-            st.markdown(bot_reply)
-            st.session_state.central_chat_history.append({"role": "assistant", "content": bot_reply})
-            if db_connected and supabase:
-                try:
-                    supabase.table("chat_history").insert({"role": "assistant", "content": bot_reply}).execute()
-                except Exception:
-                    pass
-            
-            # Kaggle GPU Voice API Call
-            audio_file = generate_voice_from_kaggle(bot_reply)
-            if audio_file and os.path.exists(audio_file):
-                st.audio(audio_file, format="audio/wav")
-            else:
-                st.caption("🔊 Voice generation running or backend offline.")
+            with st.spinner("Master Brain processing & generating Kaggle GPU voice..."):
+                reply_text, active_llm = call_master_brain(user_prompt, system_instruction)
+                bot_reply = f"{reply_text}\n\n*— Powered by: {active_llm}*"
+                
+                st.markdown(bot_reply)
+                
+                st.session_state.central_chat_history.append({"role": "assistant", "content": bot_reply})
+                if db_connected and supabase:
+                    try:
+                        supabase.table("chat_history").insert({"role": "assistant", "content": bot_reply}).execute()
+                    except Exception:
+                        pass
+                
+                # --- Kaggle GPU Voice API Integration ---
+                audio_file = generate_voice_from_kaggle(reply_text)
+                if audio_file and os.path.exists(audio_file):
+                    st.audio(audio_file, format="audio/wav")
+                else:
+                    st.caption("🔊 Voice generation running or backend offline.")
 with tab2:
     st.subheader(f"Performance Metrics for: {selected_channel}")
     st.info("Channels table data view.")
