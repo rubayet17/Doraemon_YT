@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import streamlit.components.v1 as components
 from supabase import create_client, Client
 from llm_engine import call_master_brain
 
@@ -75,7 +76,7 @@ else:
     st.sidebar.warning("⚠️ Running in Offline UI Mode")
 
 # Visual Tabs
-tab1, tab2, tab3, tab4 = tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "🧠 Central Master Doraemon Brain", 
     "📊 Channels Overview", 
     "📜 Scripts & Content Pipeline", 
@@ -85,7 +86,7 @@ tab1, tab2, tab3, tab4 = tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
 
-    # Interactive Mic Click Button & Clean 2D Animated Doraemon Visual
+    # Interactive Toggle State for Live Visual Component
     if "mic_active" not in st.session_state:
         st.session_state.mic_active = False
 
@@ -94,16 +95,109 @@ with tab1:
         if st.button("🎤 Toggle Doraemon Live Visual"):
             st.session_state.mic_active = not st.session_state.mic_active
 
+    # Custom HTML/JS Voice-Visual Component Integration
     if st.session_state.mic_active:
-        with st.container():
-            st.markdown("---")
-            col_v1, col_v2 = st.columns([1, 2])
-            with col_v1:
-                st.image("doraemon.gif", width=200)
-            with col_v2:
-                st.markdown("### 🎙️ Hello Rini, welcome!")
-                st.info("Ami Doraemon! Apnar kotha shonchi... Mic on ache, apni ekhon direct kotha bolte paren ba command dite paren!")
-            st.markdown("---")
+        doraemon_live_html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #ffffff;
+                    text-align: center;
+                    margin: 0;
+                    padding: 10px;
+                }
+                .container {
+                    background: #f0f8ff;
+                    border-radius: 15px;
+                    padding: 15px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    max-width: 450px;
+                    margin: auto;
+                    border: 2px solid #1f77b4;
+                }
+                img {
+                    width: 160px;
+                    height: 160px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 4px solid #1f77b4;
+                    transition: 0.3s;
+                }
+                .status {
+                    font-weight: bold;
+                    color: #333;
+                    margin: 12px 0;
+                    font-size: 15px;
+                }
+                button {
+                    background-color: #ff4b4b;
+                    color: white;
+                    border: none;
+                    padding: 10px 22px;
+                    border-radius: 20px;
+                    font-size: 15px;
+                    cursor: pointer;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                    transition: 0.2s;
+                }
+                button:hover {
+                    background-color: #e03e3e;
+                }
+                button.recording {
+                    background-color: #28a745;
+                }
+            </style>
+        </head>
+        <body>
+
+        <div class="container">
+            <h3>🤖 Doraemon Live Companion</h3>
+            <img id="doraemonImg" src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMml3bjF3YnYxdmhucmxreWZueHZ5NW51OWUzdjV4bXZrdXVnMWJjayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/eaQ8g94e5eNlK/giphy.gif" alt="Doraemon">
+            <div class="status" id="statusText">Ami shonchi, Rini! Start talking button click kore kotha bolo...</div>
+            <button id="micBtn" onclick="toggleRecording()">🎤 Start Talking</button>
+        </div>
+
+        <script>
+            let isRecording = false;
+
+            function toggleRecording() {
+                const btn = document.getElementById("micBtn");
+                const status = document.getElementById("statusText");
+                const img = document.getElementById("doraemonImg");
+
+                if (!isRecording) {
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(stream => {
+                            isRecording = true;
+                            btn.innerText = "🛑 Stop & Send";
+                            btn.classList.add("recording");
+                            status.innerText = "🎙️ Recording your voice, Rini...";
+                            img.style.borderColor = "#28a745";
+                        })
+                        .catch(err => {
+                            alert("Microphone permission denied or not allowed in browser iframe view.");
+                        });
+                } else {
+                    isRecording = false;
+                    btn.innerText = "🎤 Start Talking";
+                    btn.classList.remove("recording");
+                    status.innerText = "✨ Doraemon is listening & processing reply...";
+                    img.style.borderColor = "#ff4b4b";
+
+                    setTimeout(() => {
+                        status.innerText = "Ami ekhon ready achhi, Rini!";
+                    }, 2500);
+                }
+            }
+        </script>
+
+        </body>
+        </html>
+        """
+        components.html(doraemon_live_html, height=340)
 
     st.write("---")
 
@@ -150,7 +244,7 @@ with tab1:
                 st.session_state.central_chat_history.append({"role": "assistant", "content": bot_reply})
                 save_message_to_db("assistant", bot_reply)
                 
-                # --- Voice Output Integration (Audio plays, text gets saved to DB) ---
+                # --- Voice Output Integration ---
                 if voice_enabled:
                     try:
                         audio_path = generate_xtts_voice(reply_text)
