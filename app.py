@@ -1,15 +1,8 @@
 import streamlit as st
 import os
-import streamlit.components.v1 as components
+import requests
 from supabase import create_client, Client
 from llm_engine import call_master_brain
-
-# Safe Voice Engine Import
-try:
-    from voice_engine import generate_xtts_voice, generate_bark_voice
-    voice_enabled = True
-except Exception:
-    voice_enabled = False
 
 # Page Config
 st.set_page_config(page_title="Doraemon MAS Control Hub", page_icon="🤖", layout="wide")
@@ -39,6 +32,21 @@ try:
 except Exception as e:
     db_connected = False
     st.sidebar.error(f"❌ Supabase Connection Error: {e}")
+
+# Kaggle Ngrok URL from Secrets for Voice Generation
+KAGGLE_URL = st.secrets.get("KAGGLE_BACKEND_URL", "https://canary-viscous-canned.ngrok-free.dev")
+
+def generate_voice_from_kaggle(text):
+    try:
+        response = requests.post(f"{KAGGLE_URL}/generate-voice", json={"text": text}, timeout=45)
+        if response.status_code == 200:
+            audio_path = "temp_voice.wav"
+            with open(audio_path, "wb") as f:
+                f.write(response.content)
+            return audio_path
+    except Exception as e:
+        print(f"Kaggle Voice API Error: {e}")
+    return None
 
 # Database-e text message save korar helper function
 def save_message_to_db(role, content):
@@ -86,118 +94,13 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
 
-    # Interactive Toggle State for Live Visual Component
-    if "mic_active" not in st.session_state:
-        st.session_state.mic_active = False
-
-    col_btn1, col_btn2 = st.columns([1, 4])
-    with col_btn1:
-        if st.button("🎤 Toggle Doraemon Live Visual"):
-            st.session_state.mic_active = not st.session_state.mic_active
-
-    # Custom HTML/JS Voice-Visual Component Integration
-    if st.session_state.mic_active:
-        doraemon_live_html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #ffffff;
-                    text-align: center;
-                    margin: 0;
-                    padding: 10px;
-                }
-                .container {
-                    background: #f0f8ff;
-                    border-radius: 15px;
-                    padding: 15px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                    max-width: 450px;
-                    margin: auto;
-                    border: 2px solid #1f77b4;
-                }
-                img {
-                    width: 160px;
-                    height: 160px;
-                    border-radius: 50%;
-                    object-fit: cover;
-                    border: 4px solid #1f77b4;
-                    transition: 0.3s;
-                }
-                .status {
-                    font-weight: bold;
-                    color: #333;
-                    margin: 12px 0;
-                    font-size: 15px;
-                }
-                button {
-                    background-color: #ff4b4b;
-                    color: white;
-                    border: none;
-                    padding: 10px 22px;
-                    border-radius: 20px;
-                    font-size: 15px;
-                    cursor: pointer;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                    transition: 0.2s;
-                }
-                button:hover {
-                    background-color: #e03e3e;
-                }
-                button.recording {
-                    background-color: #28a745;
-                }
-            </style>
-        </head>
-        <body>
-
-        <div class="container">
-            <h3>🤖 Doraemon Live Companion</h3>
-            <img id="doraemonImg" src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMml3bjF3YnYxdmhucmxreWZueHZ5NW51OWUzdjV4bXZrdXVnMWJjayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/eaQ8g94e5eNlK/giphy.gif" alt="Doraemon">
-            <div class="status" id="statusText">Ami shonchi, Rini! Start talking button click kore kotha bolo...</div>
-            <button id="micBtn" onclick="toggleRecording()">🎤 Start Talking</button>
-        </div>
-
-        <script>
-            let isRecording = false;
-
-            function toggleRecording() {
-                const btn = document.getElementById("micBtn");
-                const status = document.getElementById("statusText");
-                const img = document.getElementById("doraemonImg");
-
-                if (!isRecording) {
-                    navigator.mediaDevices.getUserMedia({ audio: true })
-                        .then(stream => {
-                            isRecording = true;
-                            btn.innerText = "🛑 Stop & Send";
-                            btn.classList.add("recording");
-                            status.innerText = "🎙️ Recording your voice, Rini...";
-                            img.style.borderColor = "#28a745";
-                        })
-                        .catch(err => {
-                            alert("Microphone permission denied or not allowed in browser iframe view.");
-                        });
-                } else {
-                    isRecording = false;
-                    btn.innerText = "🎤 Start Talking";
-                    btn.classList.remove("recording");
-                    status.innerText = "✨ Doraemon is listening & processing reply...";
-                    img.style.borderColor = "#ff4b4b";
-
-                    setTimeout(() => {
-                        status.innerText = "Ami ekhon ready achhi, Rini!";
-                    }, 2500);
-                }
-            }
-        </script>
-
-        </body>
-        </html>
-        """
-        components.html(doraemon_live_html, height=340)
+    # Clean, Large Doraemon Visual (No button clutter)
+    col_v1, col_v2 = st.columns([1, 2])
+    with col_v1:
+        st.image("https://i.imgur.com/4AiXyZU.png", width=220)
+    with col_v2:
+        st.markdown("### 🎙️ Hello Rini!")
+        st.info("Ami Tomar Master Brain Doraemon! Niche chat box-e kotha bolo ba command দাও, ami shune shob kaj kore dicchi ar Kaggle GPU diye voice replyo pathacchi!")
 
     st.write("---")
 
@@ -235,7 +138,7 @@ with tab1:
         """
 
         with st.chat_message("assistant"):
-            with st.spinner("Master Brain processing..."):
+            with st.spinner("Master Brain processing & generating Kaggle GPU voice..."):
                 reply_text, active_llm = call_master_brain(user_prompt, system_instruction)
                 bot_reply = f"{reply_text}\n\n*— Powered by: {active_llm}*"
                 
@@ -244,16 +147,12 @@ with tab1:
                 st.session_state.central_chat_history.append({"role": "assistant", "content": bot_reply})
                 save_message_to_db("assistant", bot_reply)
                 
-                # --- Voice Output Integration ---
-                if voice_enabled:
-                    try:
-                        audio_path = generate_xtts_voice(reply_text)
-                        if audio_path and os.path.exists(audio_path):
-                            st.audio(audio_path, format="audio/wav", autoplay=True)
-                    except Exception as ex:
-                        st.caption(f"🔊 Voice note: {ex}")
+                # --- Kaggle GPU Voice API Integration ---
+                audio_file = generate_voice_from_kaggle(reply_text)
+                if audio_file and os.path.exists(audio_file):
+                    st.audio(audio_file, format="audio/wav", autoplay=True)
                 else:
-                    st.caption("💡 Voice generation runs on backend.")
+                    st.caption("🔊 Voice generation running or backend offline.")
 
 with tab2:
     st.subheader(f"Performance Metrics for: {selected_channel}")
