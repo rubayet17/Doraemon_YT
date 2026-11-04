@@ -83,8 +83,8 @@ with tab1:
             st.markdown("---")
             col_v1, col_v2 = st.columns([1, 2])
             with col_v1:
-                # Working 2D Cartoon Animated Doraemon GIF
-                st.image("https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMml3bjF3YnYxdmhucmxreWZueHZ5NW51OWUzdjV4bXZrdXVnMWJjayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/eaQ8g94e5eNlK/giphy.gif", use_column_width=True)
+    # GitHub repository theke local GIF load hobe
+    st.image("doraemon.gif", width=200)
             with col_v2:
                 st.markdown("### 🎙️ Hello Rini, welcome!")
                 st.info("Ami Doraemon! Apnar kotha shonchi... Mic on ache, apni ekhon direct kotha bolte paren ba command dite paren! [Audio mode active]")
