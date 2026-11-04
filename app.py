@@ -83,7 +83,7 @@ with tab1:
 
     st.write("---")
 
-    # Load Chat History from Supabase
+    # Load Chat History from Supabase (Without forcing default welcome message UI)
     if "central_chat_history" not in st.session_state:
         st.session_state.central_chat_history = []
         if db_connected:
@@ -93,11 +93,6 @@ with tab1:
                     st.session_state.central_chat_history = [{"role": row["role"], "content": row["content"]} for row in res.data]
             except Exception:
                 pass
-        
-        if not st.session_state.central_chat_history:
-            default_welcome = "Namaskar Rini! Ami Doraemon, apnar Central Master Brain. Bolun, ajke kon channel-er ki kaj korbo?"
-            st.session_state.central_chat_history = [{"role": "assistant", "content": default_welcome}]
-            save_message_to_db("assistant", default_welcome)
 
     for message in st.session_state.central_chat_history:
         with st.chat_message(message["role"]):
@@ -137,7 +132,6 @@ with tab1:
                         st.caption(f"🔊 Voice note: {ex}")
                 else:
                     st.caption("💡 Voice generation runs on backend.")
-
 with tab2:
     st.subheader(f"Performance Metrics for: {selected_channel}")
     if db_connected:
