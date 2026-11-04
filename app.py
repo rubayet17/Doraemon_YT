@@ -67,9 +67,8 @@ tab1, tab2, tab3, tab4 = st.tabs([
 
 with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
-    st.write("Kotha hobe ekdom Central Master Brain-er sathe. Apni je kono channel-er byapare ekhane command dite parben.")
 
-    # --- Interactive Mic Click Button & Full Visual Modal Popup (Added Here!) ---
+    # Interactive Mic Click Button & Full Visual Modal Popup
     if st.button("🎤 Click to Open Doraemon Live Voice Visual"):
         st.balloons()
         with st.expander("🤖 Doraemon Interactive Full Visual Mode", expanded=True):
@@ -81,16 +80,8 @@ with tab1:
                 audio_input_file = st.file_uploader("Upload your voice note here (.wav/.mp3)", type=["wav", "mp3"])
                 if audio_input_file:
                     st.success("Voice received! Processing thought through Master Brain...")
-                    # Future voice-to-text pipeline hookup can go here
 
     st.write("---")
-
-    # Visual Doraemon Animated Avatar Display
-    col1, col2 = st.columns([1, 4])
-    with col1:
-        st.image("https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z2anJ5OGZ3czJ4N255bnF3bmJ1bWF3aXZ5OTN5MXI2Zm56eXBwciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhwkKBc99HUgjAP6/giphy.gif", width=120)
-    with col2:
-        st.info("🤖 **Doraemon Status:** Online & Ready to chat with emotional voice clone, Rini!")
 
     # Load Chat History from Supabase
     if "central_chat_history" not in st.session_state:
@@ -136,13 +127,16 @@ with tab1:
                 st.session_state.central_chat_history.append({"role": "assistant", "content": bot_reply})
                 save_message_to_db("assistant", bot_reply)
                 
-                # --- Voice Output Integration (XTTS with Multi-Emotion .wav selection) ---
-                try:
-                    audio_path = generate_xtts_voice(reply_text)
-                    if audio_path and os.path.exists(audio_path):
-                        st.audio(audio_path, format="audio/wav", autoplay=True)
-                except Exception as ex:
-                    st.caption(f"🔊 Voice generation note: {ex}")
+                # --- Voice Output Integration ---
+                if voice_enabled:
+                    try:
+                        audio_path = generate_xtts_voice(reply_text)
+                        if audio_path and os.path.exists(audio_path):
+                            st.audio(audio_path, format="audio/wav", autoplay=True)
+                    except Exception as ex:
+                        st.caption(f"🔊 Voice note: {ex}")
+                else:
+                    st.caption("💡 Voice generation runs on backend.")
 
 with tab2:
     st.subheader(f"Performance Metrics for: {selected_channel}")
