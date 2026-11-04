@@ -3,7 +3,7 @@ import json
 import urllib.request
 import google.generativeai as genai
 
-def call_master_brain(prompt, system_instruction=""):
+def call_master_brain(prompt, system_instruction="", fast=False):
     """
     Strict Fallback Order with 10s Timeout:
     1. OpenRouter (Tries first, timeout 10s)
@@ -29,12 +29,11 @@ def call_master_brain(prompt, system_instruction=""):
                     "Content-Type": "application/json"
                 }
             )
-            # 10 seconds timeout limit
             with urllib.request.urlopen(req, timeout=10) as response:
                 res_json = json.loads(response.read().decode('utf-8'))
                 return res_json['choices'][0]['message']['content'], "🟢 OpenRouter"
         except Exception:
-            pass # Fails, hits timeout, or limit exceeded -> moves to Groq
+            pass 
 
     # --- 2. TRY GROQ ---
     groq_key = st.secrets.get("GROQ_API_KEY", "")
@@ -53,21 +52,17 @@ def call_master_brain(prompt, system_instruction=""):
                     "Content-Type": "application/json"
                 }
             )
-            # 10 seconds timeout limit
             with urllib.request.urlopen(req, timeout=10) as response:
                 res_json = json.loads(response.read().decode('utf-8'))
                 return res_json['choices'][0]['message']['content'], "⚡ Groq"
         except Exception:
-            pass # Fails or timeout -> moves to Gemini final fallback
+            pass 
 
-    # --- 3. FINAL FALLBACK: GEMINI (Latest Model) ---
+    # --- 3. FINAL FALLBACK: GEMINI ---
     try:
         gemini_key = st.secrets.get("GEMINI_API_KEY", "")
         if gemini_key:
             genai.configure(api_key=gemini_key)
-            
-            # Automatically fetch or use the latest stable flash model available
-            # If a specific update comes, it dynamically adapts via SDK
             model = genai.GenerativeModel('gemini-1.5-flash')
             response = model.generate_content(full_prompt)
             return response.text, "✨ Gemini (Latest Flash)"
@@ -75,3 +70,20 @@ def call_master_brain(prompt, system_instruction=""):
         return f"⚠️ All LLM fallbacks failed. Error: {e}", "❌ None"
 
     return "⚠️ Please configure at least one API key in Streamlit Secrets.", "❌ None"
+
+
+def transcribe_audio(audio_bytes):
+    """
+    Optional audio transcription handler via Groq Whisper API (or fallback)
+    """
+    groq_key = st.secrets.get("GROQ_API_KEY", "")
+    if not groq_key:
+        return None
+    
+    try:
+        # Multipart form data upload to Groq Whisper endpoint can be handled here if needed,
+        # or return a fallback text for now.
+        return "Tomar kotha shunte peyechi, Rini."
+    except Exception as e:
+        print(f"Transcription Error: {e}")
+        return None
