@@ -78,7 +78,7 @@ with tab1:
         if st.button("🎤 Toggle Doraemon Live Visual"):
             st.session_state.mic_active = not st.session_state.mic_active
 
-   if st.session_state.mic_active:
+    if st.session_state.mic_active:
         with st.container():
             st.markdown("---")
             col_v1, col_v2 = st.columns([1, 2])
@@ -86,7 +86,7 @@ with tab1:
                 st.image("doraemon.gif", width=200)
             with col_v2:
                 st.markdown("### 🎙️ Hello Rini, welcome!")
-                st.info("Ami Doraemon! Apnar kotha shonchi...")
+                st.info("Ami Doraemon! Apnar kotha shonchi... Mic on ache, apni ekhon direct kotha bolte paren ba command dite paren!")
             st.markdown("---")
 
     st.write("---")
@@ -115,7 +115,6 @@ with tab1:
         with st.chat_message("user"):
             st.markdown(user_prompt)
 
-        # System instruction ensuring strict language match & clean plain text (No action brackets)
         system_instruction = f"""
         You are Doraemon, the Central Master Multi-Agent Orchestrator for Rini's YouTube system.
         Currently viewing data context: {selected_channel} (ID: {current_channel_id}).
