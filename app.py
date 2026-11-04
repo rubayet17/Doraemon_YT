@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import os
 import requests
 from supabase import create_client, Client
@@ -154,7 +155,6 @@ with tab1:
 
     <div class="card">
         <div class="img-container">
-            <!-- Doraemon Local GIF / Image State -->
             <img id="doraemonImg" src="https://i.imgur.com/4AiXyZU.png" alt="Doraemon">
         </div>
         <div class="info-box">
@@ -202,7 +202,7 @@ with tab1:
     </html>
     """
     
-    # Render component in Streamlit tab1
+    # Render component in Streamlit tab1 safely
     components.html(doraemon_mic_html, height=220)
     
     st.write("---")
@@ -252,7 +252,6 @@ with tab1:
                 st.audio(audio_file, format="audio/wav")
             else:
                 st.caption("🔊 Voice generation running or backend offline.")
-
 with tab2:
     st.subheader(f"Performance Metrics for: {selected_channel}")
     st.info("Channels table data view.")
