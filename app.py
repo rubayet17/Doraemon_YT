@@ -13,6 +13,22 @@ except Exception:
 # Page Config
 st.set_page_config(page_title="Doraemon MAS Control Hub", page_icon="🤖", layout="wide")
 
+# Fixed Bottom Chat Input CSS Styling
+st.markdown(
+    """
+    <style>
+    [data-testid="stChatInput"] {
+        position: fixed;
+        bottom: 0;
+        z-index: 100;
+        background-color: white;
+        padding-bottom: 20px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Secrets & Supabase Init
 try:
     SUPABASE_URL = st.secrets["SUPABASE_URL"]
@@ -23,7 +39,7 @@ except Exception as e:
     db_connected = False
     st.sidebar.error(f"❌ Supabase Connection Error: {e}")
 
-# Database-e message save korar helper function
+# Database-e text message save korar helper function
 def save_message_to_db(role, content):
     if db_connected:
         try:
@@ -59,7 +75,7 @@ else:
     st.sidebar.warning("⚠️ Running in Offline UI Mode")
 
 # Visual Tabs
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4 = tab1, tab2, tab3, tab4 = st.tabs([
     "🧠 Central Master Doraemon Brain", 
     "📊 Channels Overview", 
     "📜 Scripts & Content Pipeline", 
@@ -134,7 +150,7 @@ with tab1:
                 st.session_state.central_chat_history.append({"role": "assistant", "content": bot_reply})
                 save_message_to_db("assistant", bot_reply)
                 
-                # --- Voice Output Integration ---
+                # --- Voice Output Integration (Audio plays, text gets saved to DB) ---
                 if voice_enabled:
                     try:
                         audio_path = generate_xtts_voice(reply_text)
