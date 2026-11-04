@@ -94,20 +94,13 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
 
-    # Clean, Large Doraemon Visual (Local GIF representation)
+    # Clean, Large Doraemon Visual
     col_v1, col_v2 = st.columns([1, 2])
     with col_v1:
         st.image("doraemon.gif", width=250)
     with col_v2:
         st.markdown("### 🎙️ Doraemon Master Brain Active")
         st.success("Ami ekhon shob bujhe felechi, Rini! Nicher chat box theke direct kotha bolo ba command দাও—ami Kaggle GPU diye voice reply pathacchi!")
-
-    # Page load hole ektibar welcome voice autoplay korar jonno
-    if "welcome_played" not in st.session_state:
-        st.session_state.welcome_played = True
-        welcome_audio = generate_voice_from_kaggle("Hello Rini! Ami Tomar Master Brain Doraemon. Bolo, ajke kon channel-er kaj shuru korbo?")
-        if welcome_audio and os.path.exists(welcome_audio):
-            st.audio(welcome_audio, format="audio/wav", autoplay=True)
 
     st.write("---")
 
@@ -157,7 +150,7 @@ with tab1:
                 # --- Kaggle GPU Voice API Integration ---
                 audio_file = generate_voice_from_kaggle(reply_text)
                 if audio_file and os.path.exists(audio_file):
-                    st.audio(audio_file, format="audio/wav", autoplay=True)
+                    st.audio(audio_file, format="audio/wav")
                 else:
                     st.caption("🔊 Voice generation running or backend offline.")
 
