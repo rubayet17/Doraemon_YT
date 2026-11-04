@@ -87,14 +87,124 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
 
-    # Clean, Large Doraemon Visual Layout
-    col_v1, col_v2 = st.columns([1, 2])
-    with col_v1:
-        st.image("doraemon.gif", width=250)
-    with col_v2:
-        st.markdown("### 🎙️ Doraemon Master Brain Active")
-        st.success("Ami ekhon shob bujhe felechi, Rini! Nicher chat box theke direct kotha bolo ba command দাও—ami Kaggle GPU diye voice reply pathacchi!")
+    # Custom HTML/JS Component for Live Mic & Animated Doraemon State
+    doraemon_mic_html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: transparent;
+                text-align: center;
+                margin: 0;
+                padding: 10px;
+            }
+            .card {
+                background: #f0f8ff;
+                border-radius: 15px;
+                padding: 20px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                max-width: 500px;
+                margin: auto;
+                border: 2px solid #1f77b4;
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+            }
+            .img-container img {
+                width: 150px;
+                height: 150px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 4px solid #1f77b4;
+                transition: 0.3s;
+            }
+            .info-box {
+                text-align: left;
+                max-width: 260px;
+            }
+            .status {
+                font-weight: bold;
+                color: #333;
+                margin-top: 10px;
+                font-size: 14px;
+            }
+            .mic-btn {
+                background-color: #ff4b4b;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 25px;
+                font-size: 15px;
+                cursor: pointer;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                margin-top: 12px;
+                transition: 0.2s;
+            }
+            .mic-btn:hover {
+                background-color: #e03e3e;
+            }
+            .mic-btn.recording {
+                background-color: #28a745;
+            }
+        </style>
+    </head>
+    <body>
 
+    <div class="card">
+        <div class="img-container">
+            <!-- Doraemon Local GIF / Image State -->
+            <img id="doraemonImg" src="https://i.imgur.com/4AiXyZU.png" alt="Doraemon">
+        </div>
+        <div class="info-box">
+            <h3>🎙️ Doraemon Active</h3>
+            <div class="status" id="statusText">Ami shonchi, Rini! Mic button click kore kotha bolo...</div>
+            <button class="mic-btn" id="micBtn" onclick="toggleRecord()">🎤 Start Talking</button>
+        </div>
+    </div>
+
+    <script>
+        let recording = false;
+
+        function toggleRecord() {
+            const btn = document.getElementById("micBtn");
+            const status = document.getElementById("statusText");
+            const img = document.getElementById("doraemonImg");
+
+            if (!recording) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        recording = true;
+                        btn.innerText = "🛑 Stop & Send";
+                        btn.classList.add("recording");
+                        status.innerText = "🎙️ Recording your voice, Rini...";
+                        img.style.borderColor = "#28a745";
+                    })
+                    .catch(err => {
+                        alert("Microphone permission required!");
+                    });
+            } else {
+                recording = false;
+                btn.innerText = "🎤 Start Talking";
+                btn.classList.remove("recording");
+                status.innerText = "✨ Processing & generating audio reply...";
+                img.style.borderColor = "#ff4b4b";
+
+                setTimeout(() => {
+                    status.innerText = "Ami ekhon ready achhi, Rini!";
+                }, 2000);
+            }
+        }
+    </script>
+
+    </body>
+    </html>
+    """
+    
+    # Render component in Streamlit tab1
+    components.html(doraemon_mic_html, height=220)
+    
     st.write("---")
 
     # Load Chat History from Session State / Supabase
