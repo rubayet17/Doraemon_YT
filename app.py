@@ -78,16 +78,15 @@ with tab1:
         if st.button("🎤 Toggle Doraemon Live Visual"):
             st.session_state.mic_active = not st.session_state.mic_active
 
-    if st.session_state.mic_active:
+   if st.session_state.mic_active:
         with st.container():
             st.markdown("---")
             col_v1, col_v2 = st.columns([1, 2])
             with col_v1:
-    # GitHub repository theke local GIF load hobe
-    st.image("doraemon.gif", width=200)
+                st.image("doraemon.gif", width=200)
             with col_v2:
                 st.markdown("### 🎙️ Hello Rini, welcome!")
-                st.info("Ami Doraemon! Apnar kotha shonchi... Mic on ache, apni ekhon direct kotha bolte paren ba command dite paren! [Audio mode active]")
+                st.info("Ami Doraemon! Apnar kotha shonchi...")
             st.markdown("---")
 
     st.write("---")
