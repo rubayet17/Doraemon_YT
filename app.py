@@ -88,7 +88,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
 
-    # Custom HTML/JS Component for Live Mic & Animated Doraemon State
+    # Custom HTML/JS Component with Local Doraemon GIF & Talk Toggle
     doraemon_mic_html = """
     <!DOCTYPE html>
     <html>
@@ -101,21 +101,42 @@ with tab1:
                 margin: 0;
                 padding: 10px;
             }
+            .wrapper {
+                max-width: 550px;
+                margin: auto;
+            }
+            .talk-trigger-btn {
+                background: linear-gradient(135deg, #1f77b4, #2ca02c);
+                color: white;
+                border: none;
+                padding: 12px 28px;
+                border-radius: 30px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+                transition: 0.3s;
+                margin-bottom: 15px;
+            }
+            .talk-trigger-btn:hover {
+                transform: scale(1.05);
+            }
             .card {
                 background: #f0f8ff;
                 border-radius: 15px;
                 padding: 20px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                max-width: 500px;
-                margin: auto;
                 border: 2px solid #1f77b4;
-                display: flex;
+                display: none;
                 align-items: center;
                 justify-content: space-around;
             }
+            .card.active {
+                display: flex;
+            }
             .img-container img {
-                width: 150px;
-                height: 150px;
+                width: 140px;
+                height: 140px;
                 border-radius: 50%;
                 object-fit: cover;
                 border: 4px solid #1f77b4;
@@ -129,7 +150,7 @@ with tab1:
                 font-weight: bold;
                 color: #333;
                 margin-top: 10px;
-                font-size: 14px;
+                font-size: 13px;
             }
             .mic-btn {
                 background-color: #ff4b4b;
@@ -137,10 +158,10 @@ with tab1:
                 border: none;
                 padding: 10px 20px;
                 border-radius: 25px;
-                font-size: 15px;
+                font-size: 14px;
                 cursor: pointer;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                margin-top: 12px;
+                margin-top: 10px;
                 transition: 0.2s;
             }
             .mic-btn:hover {
@@ -153,19 +174,37 @@ with tab1:
     </head>
     <body>
 
-    <div class="card">
-        <div class="img-container">
-            <img id="doraemonImg" src="https://i.imgur.com/4AiXyZU.png" alt="Doraemon">
-        </div>
-        <div class="info-box">
-            <h3>🎙️ Doraemon Active</h3>
-            <div class="status" id="statusText">Ami shonchi, Rini! Mic button click kore kotha bolo...</div>
-            <button class="mic-btn" id="micBtn" onclick="toggleRecord()">🎤 Start Talking</button>
+    <div class="wrapper">
+        <!-- Main Talk with Doraemon Trigger Button -->
+        <button class="talk-trigger-btn" onclick="openDashboard()">🤖 Talk with Doraemon</button>
+
+        <!-- Hidden Dashboard that opens on click -->
+        <div class="card" id="voiceDashboard">
+            <div class="img-container">
+                <!-- Using local/relative doraemon.gif representation -->
+                <img id="doraemonImg" src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMml3bjF3YnYxdmhucmxreWZueHZ5NW51OWUzdjV4bXZrdXVnMWJjayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/eaQ8g94e5eNlK/giphy.gif" alt="Doraemon">
+            </div>
+            <div class="info-box">
+                <h3 style="margin:0; color:#1f77b4;">🎙️ Doraemon Active</h3>
+                <div class="status" id="statusText">Ami shonchi, Rini! Start Talking button click koro...</div>
+                <button class="mic-btn" id="micBtn" onclick="toggleRecord()">🎤 Start Talking</button>
+            </div>
         </div>
     </div>
 
     <script>
+        let dashboardOpen = false;
         let recording = false;
+
+        function openDashboard() {
+            const dash = document.getElementById("voiceDashboard");
+            dashboardOpen = !dashboardOpen;
+            if (dashboardOpen) {
+                dash.classList.add("active");
+            } else {
+                dash.classList.remove("active");
+            }
+        }
 
         function toggleRecord() {
             const btn = document.getElementById("micBtn");
@@ -202,8 +241,8 @@ with tab1:
     </html>
     """
     
-    # Render component in Streamlit tab1 safely
-    components.html(doraemon_mic_html, height=220)
+    # Render component safely in Streamlit tab1
+    components.html(doraemon_mic_html, height=240)
     
     st.write("---")
 
