@@ -19,20 +19,23 @@ def generate_xtts_voice(text, output_path="doraemon_xtts.wav"):
         if not tts:
             return None
 
-        # Text onujayi sothik .wav file select korar logic
         lower_text = text.lower()
+        
+        # Ekhane text analyze kore voice_samples folder theke sothik .wav file select korbe:
         if any(w in lower_text for w in ["haha", "hehe", "lol", "hasi", "fun", "mast"]):
             speaker_wav = "voice_samples/doraemon-laughing.wav"
         elif any(w in lower_text for w in ["kanna", "sad", "dukkhu", "cry", "sorry"]):
             speaker_wav = "voice_samples/doraemon-crying.wav"
         elif any(w in lower_text for w in ["rge", "pagol", "faltu", "angry"]):
             speaker_wav = "voice_samples/doraemon-angry.wav"
-        elif any(w in lower_text for w in ["fear", "bhoy", "dar"):
+        elif any(w in lower_text for w in ["fear", "bhoy", "dar"]):
             speaker_wav = "voice_samples/doraemon-fear.wav"
+        elif any(w in lower_text for w in ["gadget", "pocket", "kholo"]):
+            speaker_wav = "voice_samples/doraemon-opening-gadget.wav"
         else:
             speaker_wav = "voice_samples/doraemon-default.wav"
 
-        # Jodi specific file na thake, tahove default use korbe
+        # Jodi kono karone specific file na paoa jay, tahole default file use korbe
         if not os.path.exists(speaker_wav):
             speaker_wav = "voice_samples/doraemon-default.wav"
 
