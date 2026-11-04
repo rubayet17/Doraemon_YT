@@ -2,8 +2,13 @@ import streamlit as st
 import os
 from supabase import create_client, Client
 from llm_engine import call_master_brain
-from voice_engine import generate_xtts_voice, generate_bark_voice
 
+# Safe Voice Engine Import (Streamlit Cloud-e torch/TTS error avoid korar jonno)
+try:
+    from voice_engine import generate_xtts_voice, generate_bark_voice
+    voice_enabled = True
+except Exception:
+    voice_enabled = False
 # Page Config
 st.set_page_config(page_title="Doraemon MAS Control Hub", page_icon="🤖", layout="wide")
 
