@@ -3,7 +3,7 @@ import os
 from supabase import create_client, Client
 from llm_engine import call_master_brain
 
-# Safe Voice Engine Import (Streamlit Cloud-e torch/TTS error avoid korar jonno)
+# Safe Voice Engine Import
 try:
     from voice_engine import generate_xtts_voice, generate_bark_voice
     voice_enabled = True
@@ -69,25 +69,30 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
 
-    # Interactive Mic Click Button & Full Visual Modal Popup with Joyful Greeting & 2D Animation
-    if st.button("🎤 Click to Open Doraemon Live Voice Visual"):
-        st.balloons()
-        with st.expander("🤖 Doraemon Interactive Full Visual Mode", expanded=True):
+    # Interactive Mic Click Button & Clean 2D Animated Doraemon Visual
+    if "mic_active" not in st.session_state:
+        st.session_state.mic_active = False
+
+    col_btn1, col_btn2 = st.columns([1, 4])
+    with col_btn1:
+        if st.button("🎤 Toggle Doraemon Live Visual"):
+            st.session_state.mic_active = not st.session_state.mic_active
+
+    if st.session_state.mic_active:
+        with st.container():
+            st.markdown("---")
             col_v1, col_v2 = st.columns([1, 2])
             with col_v1:
-                # 2D Animated Doraemon Visual (Auto loaded via GIF link)
-                st.image("https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z2anJ5OGZ3czJ4N255bnF3bmJ1bWF3aXZ5OTN5MXI2Zm56eXBwciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhwkKBc99HUgjAP6/giphy.gif", width=180)
+                # Working 2D Cartoon Animated Doraemon GIF
+                st.image("https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMml3bjF3YnYxdmhucmxreWZueHZ5NW51OWUzdjV4bXZrdXVnMWJjayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/eaQ8g94e5eNlK/giphy.gif", use_column_width=True)
             with col_v2:
-                st.markdown("### 🎙️ Hello Rini, welcome! 🎉")
-                st.info("Ami Doraemon! Apnar kotha shonar jonno ready achhi. Ekhane apnar voice note upload korun ba command দিন:")
-                
-                audio_input_file = st.file_uploader("Upload your voice note here (.wav/.mp3)", type=["wav", "mp3"])
-                if audio_input_file:
-                    st.success("Voice received! Processing thought through Master Brain...")
+                st.markdown("### 🎙️ Hello Rini, welcome!")
+                st.info("Ami Doraemon! Apnar kotha shonchi... Mic on ache, apni ekhon direct kotha bolte paren ba command dite paren! [Audio mode active]")
+            st.markdown("---")
 
     st.write("---")
 
-    # Load Chat History from Supabase (Clean view without default welcome text)
+    # Load Chat History from Supabase
     if "central_chat_history" not in st.session_state:
         st.session_state.central_chat_history = []
         if db_connected:
@@ -98,10 +103,12 @@ with tab1:
             except Exception:
                 pass
 
+    # Display Chat History first
     for message in st.session_state.central_chat_history:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
+    # Chat input placed correctly at the BOTTOM (Gemini Style)
     if user_prompt := st.chat_input("Command Central Master Brain..."):
         st.session_state.central_chat_history.append({"role": "user", "content": user_prompt})
         save_message_to_db("user", user_prompt)
@@ -109,15 +116,18 @@ with tab1:
         with st.chat_message("user"):
             st.markdown(user_prompt)
 
+        # System instruction ensuring strict language match & clean plain text (No action brackets)
         system_instruction = f"""
         You are Doraemon, the Central Master Multi-Agent Orchestrator for Rini's YouTube system.
         Currently viewing data context: {selected_channel} (ID: {current_channel_id}).
         Strict Core Metric: 1. Maximize Watch Time, 2. Viewer Satisfaction. Zero clickbait.
-        Be conversational, active, and helpful like a best friend. Always address her as Rini. Include emotional cues like [laughs] where natural.
+        Language Rule: Strictly reply in the exact same language/script the user used (Bangla if user speaks Bangla, English if user speaks English, Banglish if user speaks Banglish).
+        Formatting Rule: Do NOT include any emotional action tags or brackets like [laughs], [waves excitedly], or [beeps happily]. Output clean plain text only.
+        Always address her as Rini. Be friendly, warm, and act like a best friend.
         """
 
         with st.chat_message("assistant"):
-            with st.spinner("Master Brain processing & generating emotional voice..."):
+            with st.spinner("Master Brain processing..."):
                 reply_text, active_llm = call_master_brain(user_prompt, system_instruction)
                 bot_reply = f"{reply_text}\n\n*— Powered by: {active_llm}*"
                 
@@ -144,7 +154,7 @@ with tab2:
             res = supabase.table("channels").select("*").eq("channel_name", selected_channel).execute()
             st.dataframe(res.data, use_container_width=True)
         except Exception:
-            st.info("Channels table loading table loading...")
+            st.info("Channels table loading...")
 
 with tab3:
     st.subheader(f"Content Pipeline Data ({selected_channel})")
