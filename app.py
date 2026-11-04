@@ -94,19 +94,20 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
 
-    # Local repository-er doraemon.gif file direct use kora holo
+    # Clean, Large Doraemon Visual (Local GIF representation)
     col_v1, col_v2 = st.columns([1, 2])
     with col_v1:
-        st.image("doraemon.gif", width=220)
+        st.image("doraemon.gif", width=250)
     with col_v2:
-        st.markdown("### 🎙️ Hello Rini!")
-        st.info("Ami Tomar Master Brain Doraemon! Niche chat box-e kotha bolo ba audio record koro, ami Kaggle GPU diye voice reply pathacchi!")
+        st.markdown("### 🎙️ Doraemon Master Brain Active")
+        st.success("Ami ekhon shob bujhe felechi, Rini! Nicher chat box theke direct kotha bolo ba command দাও—ami Kaggle GPU diye voice reply pathacchi!")
 
-    # Native Streamlit Audio Input (Direct Mic Recording)
-    audio_value = st.audio_input("🎤 Click to Record Voice Note")
-    if audio_value:
-        st.success("Voice note received successfully! Processing through Master Brain...")
-        # Ekhane audio file-ke backend-e pathanor logic ba text conversion add kora jabe
+    # Page load hole ektibar welcome voice autoplay korar jonno
+    if "welcome_played" not in st.session_state:
+        st.session_state.welcome_played = True
+        welcome_audio = generate_voice_from_kaggle("Hello Rini! Ami Tomar Master Brain Doraemon. Bolo, ajke kon channel-er kaj shuru korbo?")
+        if welcome_audio and os.path.exists(welcome_audio):
+            st.audio(welcome_audio, format="audio/wav", autoplay=True)
 
     st.write("---")
 
@@ -121,7 +122,7 @@ with tab1:
             except Exception:
                 pass
 
-    # Display Chat History first
+    # Display Chat History
     for message in st.session_state.central_chat_history:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
@@ -134,7 +135,7 @@ with tab1:
         with st.chat_message("user"):
             st.markdown(user_prompt)
 
-        system_image_instruction = f"""
+        system_instruction = f"""
         You are Doraemon, the Central Master Multi-Agent Orchestrator for Rini's YouTube system.
         Currently viewing data context: {selected_channel} (ID: {current_channel_id}).
         Strict Core Metric: 1. Maximize Watch Time, 2. Viewer Satisfaction. Zero clickbait.
@@ -145,7 +146,7 @@ with tab1:
 
         with st.chat_message("assistant"):
             with st.spinner("Master Brain processing & generating Kaggle GPU voice..."):
-                reply_text, active_llm = call_master_brain(user_prompt, system_image_instruction)
+                reply_text, active_llm = call_master_brain(user_prompt, system_instruction)
                 bot_reply = f"{reply_text}\n\n*— Powered by: {active_llm}*"
                 
                 st.markdown(bot_reply)
