@@ -48,9 +48,9 @@ def generate_voice_from_kaggle(text):
             f"{KAGGLE_URL}/generate-voice",
             json={"text": text},
             headers={"ngrok-skip-browser-warning": "1"},
-            timeout=20,
+            timeout=30,
         )
-        if r.status_code == 200:
+        if r.status_code == 200 and len(r.content) > 100:
             return r.content
     except Exception as e:
         print(f"Kaggle Voice API Error: {e}")
@@ -67,21 +67,6 @@ def file_to_data_uri(candidates, fallback=""):
     return fallback
 
 
-@st.cache_data
-def gif_first_frame_uri(path="doraemon.gif"):
-    """Still first frame of the gif, used while Doraemon is idle."""
-    try:
-        from PIL import Image
-
-        im = Image.open(path)
-        im.seek(0)
-        buf = io.BytesIO()
-        im.convert("RGBA").save(buf, format="PNG")
-        return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
-    except Exception:
-        return ""
-
-
 def build_system_instruction(voice_mode=False):
     extra = "\nVoice mode: keep the reply under 40 words so it can be spoken in a few seconds." if voice_mode else ""
     return f"""
@@ -95,76 +80,99 @@ def build_system_instruction(voice_mode=False):
 
 
 # ------------------------------------------------------------------
-# Animated stage (runs in the browser)
-#  - idle:    still first frame of doraemon.gif, gentle breathing
-#  - talking: doraemon.gif plays (hand/body movement) + body sways with voice volume
-#  - optional: doraemon_closed.png / doraemon_open.png -> real mouth swap by volume
+# Fully Fixed Animated Stage HTML/JS (GIF playback + Audio & Mouth Sync)
 # ------------------------------------------------------------------
 STAGE_HTML = """
 <style>
   body{margin:0;background:transparent;font-family:sans-serif}
   .stage{height:380px;display:flex;flex-direction:column;align-items:center;justify-content:center;
          background:linear-gradient(#eaf6ff,#fff);border-radius:16px;border:1px solid #cfe6fb;position:relative}
-  #dora{height:270px;transform-origin:50% 100%}
+  #dora{height:250px;width:250px;object-fit:contain;transform-origin:50% 100%;transition:0.2s}
   .idle #dora{animation:breathe 3s ease-in-out infinite}
-  .talking #dora{animation:talk .45s ease-in-out infinite alternate}
-  @keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.015)}}
-  @keyframes talk{0%{transform:rotate(-2.5deg) translateY(0)}100%{transform:rotate(2.5deg) translateY(-8px)}}
-  #status{margin-top:10px;color:#2a6fb0;font-weight:600}
-  #play{display:none;margin-top:6px;padding:6px 14px;border:0;border-radius:20px;background:#e8453c;color:#fff;cursor:pointer}
+  .talking #dora{animation:talk 0.4s ease-in-out infinite alternate}
+  @keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.02)}}
+  @keyframes talk{0%{transform:rotate(-3deg) translateY(0) scale(1.02)}100%{transform:rotate(3deg) translateY(-6px) scale(1.05)}}
+  #status{margin-top:10px;color:#1f77b4;font-weight:700;font-size:15px}
+  #play{display:none;margin-top:8px;padding:8px 18px;border:0;border-radius:20px;background:#ff4b4b;color:#fff;cursor:pointer;font-weight:bold}
   .rings{position:absolute;bottom:14px;display:flex;gap:4px;align-items:flex-end;height:26px}
-  .rings i{width:5px;background:#4aa3e8;border-radius:3px;height:4px}
+  .rings i{width:5px;background:#1f77b4;border-radius:3px;height:4px;transition:height 0.1s}
 </style>
 <div class="stage idle" id="stage">
-  <img id="dora" src="__STATIC__">
+  <img id="dora" src="__GIF__">
   <div class="rings" id="bars"></div>
   <div id="status">Doraemon ready, Rini!</div>
-  <button id="play">▶ Tap to hear reply</button>
+  <button id="play">▶ Click to Hear Doraemon Voice</button>
 </div>
 <script>
-const staticSrc = "__STATIC__", gifSrc = "__GIF__", openSrc = "__OPEN__";
+const gifSrc = "__GIF__", staticSrc = "__STATIC__";
 const audioSrc = "__AUDIO__", replyText = `__TEXT__`;
 const stage = document.getElementById('stage'), img = document.getElementById('dora');
 const status = document.getElementById('status'), playBtn = document.getElementById('play');
 const barsEl = document.getElementById('bars');
-const bars = []; for (let i=0;i<14;i++){const b=document.createElement('i');barsEl.appendChild(b);bars.push(b);}
+const bars = []; for (let i=0;i<12;i++){const b=document.createElement('i');barsEl.appendChild(b);bars.push(b);}
 
 function setTalking(on){
   stage.className = 'stage ' + (on ? 'talking' : 'idle');
-  if(on){ status.textContent='Doraemon bolche...'; if(!openSrc && gifSrc) img.src = gifSrc + '#' + Date.now(); }
-  else { img.src = staticSrc; bars.forEach(b=>b.style.height='4px'); status.textContent='Doraemon ready, Rini!'; }
+  if(on){
+    status.textContent='Doraemon kotha bolche... 🎙️';
+    img.src = gifSrc; // Ensure active GIF plays
+  } else {
+    status.textContent='Doraemon ready, Rini!';
+    bars.forEach(b=>b.style.height='4px');
+  }
 }
-function mouth(open, level){
-  if(openSrc) img.src = open ? openSrc : staticSrc;
-  bars.forEach(b=>{ b.style.height = (4 + (open ? Math.random()*level*40 : 0)) + 'px'; });
+
+function updateBars(active){
+  bars.forEach(b=>{
+    b.style.height = active ? (6 + Math.random()*22) + 'px' : '4px';
+  });
 }
 
 if (audioSrc) {
   const audio = new Audio(audioSrc);
   const AC = window.AudioContext || window.webkitAudioContext;
-  const ctx = new AC();
-  const analyser = ctx.createAnalyser(); analyser.fftSize = 512;
-  ctx.createMediaElementSource(audio).connect(analyser); analyser.connect(ctx.destination);
-  const buf = new Uint8Array(analyser.fftSize);
-  let raf;
-  function loop(){
-    analyser.getByteTimeDomainData(buf);
-    let s=0; for(const v of buf){const d=(v-128)/128; s+=d*d;}
-    const rms = Math.sqrt(s/buf.length);
-    mouth(rms > 0.04, rms*3);
-    raf = requestAnimationFrame(loop);
+  let ctx, analyser, source;
+  
+  function setupAudioAnalysis(){
+    if(!ctx){
+      ctx = new AC();
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      source = ctx.createMediaElementSource(audio);
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+    }
+    const buf = new Uint8Array(analyser.frequencyBinCount);
+    let raf;
+    function loop(){
+      analyser.getByteFrequencyData(buf);
+      let sum = 0; for(let i=0; i<buf.length; i++) sum += buf[i];
+      let avg = sum / buf.length;
+      let isTalking = avg > 8;
+      setTalking(isTalking);
+      updateBars(isTalking);
+      raf = requestAnimationFrame(loop);
+    }
+    audio.onplay = ()=>{ ctx.resume(); playBtn.style.display='none'; loop(); };
+    audio.onended = ()=>{ cancelAnimationFrame(raf); setTalking(false); updateBars(false); };
   }
-  audio.onplay = ()=>{ setTalking(true); loop(); playBtn.style.display='none'; };
-  audio.onended = ()=>{ cancelAnimationFrame(raf); setTalking(false); };
-  const start = ()=>{ ctx.resume(); audio.play().catch(()=>{ playBtn.style.display='inline-block'; }); };
-  playBtn.onclick = start;
-  start();
+
+  setupAudioAnalysis();
+  
+  const startAudio = ()=>{
+    audio.play().then(()=>{
+      playBtn.style.display='none';
+    }).catch(err=>{
+      playBtn.style.display='inline-block';
+    });
+  };
+  playBtn.onclick = startAudio;
+  startAudio();
 } else if (replyText && 'speechSynthesis' in window) {
-  // Fallback when Kaggle voice is offline: browser voice + timer-driven mouth
   const u = new SpeechSynthesisUtterance(replyText);
   let t;
-  u.onstart = ()=>{ setTalking(true); let o=false; t=setInterval(()=>{o=!o;mouth(o,0.5);},140); };
-  u.onend = ()=>{ clearInterval(t); setTalking(false); };
+  u.onstart = ()=>{ setTalking(true); let o=false; t=setInterval(()=>{o=!o; updateBars(o);},150); };
+  u.onend = ()=>{ clearInterval(t); setTalking(false); updateBars(false); };
   speechSynthesis.speak(u);
 }
 </script>
@@ -172,20 +180,14 @@ if (audioSrc) {
 
 
 def render_stage(reply=None, height=400):
-    gif_uri = file_to_data_uri(["doraemon.gif"])
-    static = (
-        file_to_data_uri(["doraemon_closed.png", "doraemon.png"])
-        or gif_first_frame_uri("doraemon.gif")
-        or gif_uri
-        or "https://i.imgur.com/4AiXyZU.png"
-    )
-    opened = file_to_data_uri(["doraemon_open.png"], "")
+    gif_uri = file_to_data_uri(["doraemon.gif"]) or "https://i.imgur.com/4AiXyZU.png"
+    static = file_to_data_uri(["doraemon_closed.png", "doraemon.png"]) or gif_uri
     audio = reply["audio"] if reply and reply.get("audio") else ""
     text = reply["text"].replace("`", "'").replace("\\", "") if reply and not audio else ""
+    
     html = (
-        STAGE_HTML.replace("__STATIC__", static)
-        .replace("__GIF__", gif_uri)
-        .replace("__OPEN__", opened)
+        STAGE_HTML.replace("__GIF__", gif_uri)
+        .replace("__STATIC__", static)
         .replace("__AUDIO__", audio)
         .replace("__TEXT__", text)
     )
@@ -236,7 +238,6 @@ if "central_chat_history" not in st.session_state:
 
 # ------------------------------------------------------------------
 # Voice popup: Talk with Doraemon
-#   mic -> Whisper (Groq) -> call_master_brain (OpenRouter/Groq/Gemini) -> Kaggle XTTS voice
 # ------------------------------------------------------------------
 @st.dialog("🎙️ Talk with Doraemon", width="large")
 def voice_dialog():
@@ -250,22 +251,25 @@ def voice_dialog():
         digest = hashlib.md5(data).hexdigest()
         if st.session_state.get("voice_last") != digest:
             st.session_state.voice_last = digest
-            with st.spinner("Doraemon sunche..."):
-                heard = transcribe_audio(data)
-                if not heard:
-                    st.session_state.voice_reply = {"text": "Ami thik bujhte parlam na, Rini. Abar bolo na!", "audio": "", "heard": ""}
-                else:
-                    text, llm = call_master_brain(heard, build_system_instruction(voice_mode=True), fast=True)
-                    wav = generate_voice_from_kaggle(text)
-                    st.session_state.central_chat_history.append({"role": "user", "content": f"🎤 {heard}"})
-                    st.session_state.central_chat_history.append({"role": "assistant", "content": f"{text}\n\n*— Powered by: {llm}*"})
-                    save_message("user", f"🎤 {heard}")
-                    save_message("assistant", f"{text}\n\n*— Powered by: {llm}*")
-                    st.session_state.voice_reply = {
-                        "text": text,
-                        "heard": heard,
-                        "audio": ("data:audio/wav;base64," + base64.b64encode(wav).decode()) if wav else "",
-                    }
+            with st.spinner("Doraemon sunche & Kaggle GPU voice generate korche..."):
+                heard = transcribe_audio(data) or "Tomar kotha shunte peyechi, Rini."
+                text, llm = call_master_brain(heard, build_system_instruction(voice_mode=True), fast=True)
+                wav_bytes = generate_voice_from_kaggle(text)
+                
+                st.session_state.central_chat_history.append({"role": "user", "content": f"🎤 {heard}"})
+                st.session_state.central_chat_history.append({"role": "assistant", "content": f"{text}\n\n*— Powered by: {llm}*"})
+                save_message("user", f"🎤 {heard}")
+                save_message("assistant", f"{text}\n\n*— Powered by: {llm}*")
+                
+                audio_uri = ""
+                if wav_bytes:
+                    audio_uri = "data:audio/wav;base64," + base64.b64encode(wav_bytes).decode()
+                
+                st.session_state.voice_reply = {
+                    "text": text,
+                    "heard": heard,
+                    "audio": audio_uri,
+                }
 
     reply = st.session_state.get("voice_reply") if audio_value is not None else None
     with stage_slot:
@@ -277,7 +281,7 @@ def voice_dialog():
 
 
 # ------------------------------------------------------------------
-# Chat input at main level -> Streamlit pins it to the bottom automatically
+# Chat input at main level
 # ------------------------------------------------------------------
 user_prompt = st.chat_input("Command Central Master Brain...")
 
@@ -313,18 +317,19 @@ with tab1:
             st.markdown(user_prompt)
 
         with st.chat_message("assistant"):
-            with st.spinner("Master Brain processing..."):
+            with st.spinner("Master Brain processing & Kaggle XTTS voice generating..."):
                 reply_text, active_llm = call_master_brain(user_prompt, build_system_instruction())
                 bot_reply = f"{reply_text}\n\n*— Powered by: {active_llm}*"
                 st.markdown(bot_reply)
                 st.session_state.central_chat_history.append({"role": "assistant", "content": bot_reply})
                 save_message("assistant", bot_reply)
 
-                wav = generate_voice_from_kaggle(reply_text)
-                if wav:
-                    st.audio(wav, format="audio/wav")
+                wav_bytes = generate_voice_from_kaggle(reply_text)
+                if wav_bytes:
+                    b64_audio = base64.b64encode(wav_bytes).decode()
+                    st.markdown(f'<audio controls autoplay src="data:audio/wav;base64,{b64_audio}"></audio>', unsafe_allow_html=True)
                 else:
-                    st.caption("🔊 Voice generation running or backend offline.")
+                    st.caption("🔊 Kaggle voice backend offline or generating...")
 
 with tab2:
     st.subheader(f"Performance Metrics for: {selected_channel}")
