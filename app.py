@@ -9,6 +9,7 @@ try:
     voice_enabled = True
 except Exception:
     voice_enabled = False
+
 # Page Config
 st.set_page_config(page_title="Doraemon MAS Control Hub", page_icon="🤖", layout="wide")
 
@@ -68,22 +69,25 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
 
-    # Interactive Mic Click Button & Full Visual Modal Popup
+    # Interactive Mic Click Button & Full Visual Modal Popup with Joyful Greeting & 2D Animation
     if st.button("🎤 Click to Open Doraemon Live Voice Visual"):
         st.balloons()
         with st.expander("🤖 Doraemon Interactive Full Visual Mode", expanded=True):
             col_v1, col_v2 = st.columns([1, 2])
             with col_v1:
-                st.image("https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z2anJ5OGZ3czJ4N255bnF3bmJ1bWF3aXZ5OTN5MXI2Zm56eXBwciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhwkKBc99HUgjAP6/giphy.gif", width=160)
+                # 2D Animated Doraemon Visual (Auto loaded via GIF link)
+                st.image("https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z2anJ5OGZ3czJ4N255bnF3bmJ1bWF3aXZ5OTN5MXI2Zm56eXBwciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhwkKBc99HUgjAP6/giphy.gif", width=180)
             with col_v2:
-                st.markdown("### 🎙️ Doraemon is listening to you, Rini! Speak now...")
+                st.markdown("### 🎙️ Hello Rini, welcome! 🎉")
+                st.info("Ami Doraemon! Apnar kotha shonar jonno ready achhi. Ekhane apnar voice note upload korun ba command দিন:")
+                
                 audio_input_file = st.file_uploader("Upload your voice note here (.wav/.mp3)", type=["wav", "mp3"])
                 if audio_input_file:
                     st.success("Voice received! Processing thought through Master Brain...")
 
     st.write("---")
 
-    # Load Chat History from Supabase (Without forcing default welcome message UI)
+    # Load Chat History from Supabase (Clean view without default welcome text)
     if "central_chat_history" not in st.session_state:
         st.session_state.central_chat_history = []
         if db_connected:
@@ -132,6 +136,7 @@ with tab1:
                         st.caption(f"🔊 Voice note: {ex}")
                 else:
                     st.caption("💡 Voice generation runs on backend.")
+
 with tab2:
     st.subheader(f"Performance Metrics for: {selected_channel}")
     if db_connected:
@@ -139,7 +144,7 @@ with tab2:
             res = supabase.table("channels").select("*").eq("channel_name", selected_channel).execute()
             st.dataframe(res.data, use_container_width=True)
         except Exception:
-            st.info("Channels table loading...")
+            st.info("Channels table loading table loading...")
 
 with tab3:
     st.subheader(f"Content Pipeline Data ({selected_channel})")
