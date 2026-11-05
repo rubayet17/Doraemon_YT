@@ -16,34 +16,41 @@ from llm_engine import call_master_brain, transcribe_audio
 st.set_page_config(page_title="Doraemon MAS Control Hub", page_icon="🤖", layout="wide")
 
 # ------------------------------------------------------------------
-# Custom CSS for Sticky Header & Sidebar
+# Custom CSS for 100% Dynamic Fixed Header Box & Sidebar
 # ------------------------------------------------------------------
 st.markdown("""
 <style>
     /* Fixed Sidebar */
     [data-testid="stSidebar"] {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 100;
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        z-index: 1000 !important;
     }
     
-    /* Fixed Top Header / Mission Metric Container */
-    .fixed-header {
-        position: fixed;
-        top: 0;
-        right: 0;
-        left: 21rem; /* Adjusts based on sidebar width */
-        background-color: #ffffff;
-        z-index: 99;
-        padding: 10px 20px 0px 20px;
-        border-bottom: 1px solid #e0e0e0;
+    /* Fixed Top Header Box Container (Dynamic overflow for future tabs) */
+    .fixed-box-header {
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        left: 21rem !important;
+        background-color: #ffffff !important;
+        z-index: 999 !important;
+        padding: 12px 20px 8px 20px !important;
+        border-bottom: 2px solid #e6f2ff !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
     }
     
-    /* Add padding to top so content doesn't hide under fixed header */
-    .main .block-container {
-        padding-top: 140px;
+    /* Make tab headers horizontally scrollable if tabs increase in future */
+    .fixed-box-header [data-testid="stHorizontalBlock"] {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+    
+    /* Prevent main content from hiding under fixed header */
+    .block-container {
+        padding-top: 155px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -251,10 +258,20 @@ else:
     st.sidebar.warning("⚠️ Running in Offline UI Mode")
 
 # ------------------------------------------------------------------
-# Fixed Header Section (Core Mission Metric)
+# Fixed Header Box Section (Core Mission Metric & Dynamic Tabs Container)
 # ------------------------------------------------------------------
-st.markdown('<div class="fixed-header">', unsafe_allow_html=True)
+st.markdown('<div class="fixed-box-header">', unsafe_allow_html=True)
 st.markdown("### 🎯 Core Mission Metric: **Watch Time + Viewer Satisfaction 100% Guaranteed** (Zero Clickbait)")
+
+# FUTURE-PROOF TABS: You can add more tabs here in future (e.g., 5th, 6th tabs)
+tab1, tab2, tab3, tab4 = st.tabs(
+    [
+        "🧠 Central Master Doraemon Brain",
+        "📊 Channels Overview",
+        "📜 Scripts & Content Pipeline",
+        "🎬 1-Click Approval Gate",
+    ]
+)
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
@@ -321,15 +338,6 @@ def voice_dialog():
 # Chat input at main level
 # ------------------------------------------------------------------
 user_prompt = st.chat_input("Command Central Master Brain...")
-
-tab1, tab2, tab3, tab4 = st.tabs(
-    [
-        "🧠 Central Master Doraemon Brain",
-        "📊 Channels Overview",
-        "📜 Scripts & Content Pipeline",
-        "🎬 1-Click Approval Gate",
-    ]
-)
 
 with tab1:
     st.subheader("🧠 Central Master Doraemon Brain Chat")
