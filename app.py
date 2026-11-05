@@ -16,34 +16,35 @@ from llm_engine import call_master_brain, transcribe_audio
 st.set_page_config(page_title="Doraemon MAS Control Hub", page_icon="🤖", layout="wide")
 
 # ------------------------------------------------------------------
-# Custom CSS for Sticky Header & Sidebar
+# Custom CSS for 100% Fixed Header & Sidebar
 # ------------------------------------------------------------------
 st.markdown("""
 <style>
     /* Fixed Sidebar */
     [data-testid="stSidebar"] {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 100;
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        z-index: 1000 !important;
     }
     
-    /* Fixed Top Header / Mission Metric Container */
-    .fixed-header {
+    /* Fixed Top Header Container */
+    .fixed-header-container {
         position: fixed;
         top: 0;
         right: 0;
-        left: 21rem; /* Adjusts based on sidebar width */
+        left: 21rem;
         background-color: #ffffff;
-        z-index: 99;
-        padding: 10px 20px 0px 20px;
-        border-bottom: 1px solid #e0e0e0;
+        z-index: 999;
+        padding: 15px 25px 5px 25px;
+        border-bottom: 2px solid #e6f2ff;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
     
-    /* Add padding to top so content doesn't hide under fixed header */
-    .main .block-container {
-        padding-top: 140px;
+    /* Main content top padding so it doesn't hide under fixed header */
+    .block-container {
+        padding-top: 130px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -253,7 +254,7 @@ else:
 # ------------------------------------------------------------------
 # Fixed Header Section (Core Mission Metric)
 # ------------------------------------------------------------------
-st.markdown('<div class="fixed-header">', unsafe_allow_html=True)
+st.markdown('<div class="fixed-header-container">', unsafe_allow_html=True)
 st.markdown("### 🎯 Core Mission Metric: **Watch Time + Viewer Satisfaction 100% Guaranteed** (Zero Clickbait)")
 st.markdown('</div>', unsafe_allow_html=True)
 
