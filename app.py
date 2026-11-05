@@ -16,10 +16,18 @@ from llm_engine import call_master_brain, transcribe_audio
 st.set_page_config(page_title="Doraemon MAS Control Hub", page_icon="🤖", layout="wide")
 
 # ------------------------------------------------------------------
-# Custom CSS for Sticky Header & Sidebar
+# Custom CSS: Fixed Sidebar + Sticky Mission Header + Sticky Tab Menu
 # ------------------------------------------------------------------
+# Tweak these 2 values if needed:
+#   --sticky-top : Streamlit's own top toolbar height (Share / star / menu)
+#   --hdr-h      : height of the Core Mission Metric header
 st.markdown("""
 <style>
+    :root {
+        --sticky-top: 3.75rem;
+        --hdr-h: 3.4rem;
+    }
+
     /* Fixed Sidebar */
     [data-testid="stSidebar"] {
         position: fixed;
@@ -28,22 +36,35 @@ st.markdown("""
         left: 0;
         z-index: 100;
     }
-    
-    /* Fixed Top Header / Mission Metric Container */
-    .fixed-header {
-        position: fixed;
-        top: 0;
-        right: 0;
-        left: 21rem; /* Adjusts based on sidebar width */
-        background-color: #ffffff;
+
+    /* Sticky Mission Metric header (always visible while scrolling) */
+    div[data-testid="stElementContainer"]:has(.mission-header),
+    div.element-container:has(.mission-header) {
+        position: sticky;
+        top: var(--sticky-top);
         z-index: 99;
-        padding: 10px 20px 0px 20px;
-        border-bottom: 1px solid #e0e0e0;
+        background-color: #ffffff;
     }
-    
-    /* Add padding to top so content doesn't hide under fixed header */
-    .main .block-container {
-        padding-top: 140px;
+    .mission-header {
+        height: var(--hdr-h);
+        display: flex;
+        align-items: center;
+        background-color: #ffffff;
+        font-size: 1.15rem;
+        font-weight: 700;
+        line-height: 1.3;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Sticky Tab Menu - applies to ALL tabs, so any new tab you add
+       later automatically stays fixed under the header */
+    [data-testid="stTabs"] [data-baseweb="tab-list"] {
+        position: sticky;
+        top: calc(var(--sticky-top) + var(--hdr-h));
+        z-index: 98;
+        background-color: #ffffff;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -251,11 +272,12 @@ else:
     st.sidebar.warning("⚠️ Running in Offline UI Mode")
 
 # ------------------------------------------------------------------
-# Fixed Header Section (Core Mission Metric)
+# Sticky Header Section (Core Mission Metric)
 # ------------------------------------------------------------------
-st.markdown('<div class="fixed-header">', unsafe_allow_html=True)
-st.markdown("### 🎯 Core Mission Metric: **Watch Time + Viewer Satisfaction 100% Guaranteed** (Zero Clickbait)")
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="mission-header">🎯 Core Mission Metric: Watch Time + Viewer Satisfaction 100% Guaranteed (Zero Clickbait)</div>',
+    unsafe_allow_html=True,
+)
 
 # ------------------------------------------------------------------
 # Chat history
