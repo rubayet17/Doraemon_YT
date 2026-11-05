@@ -16,11 +16,8 @@ from llm_engine import call_master_brain, transcribe_audio
 st.set_page_config(page_title="Doraemon MAS Control Hub", page_icon="🤖", layout="wide")
 
 # ------------------------------------------------------------------
-# Custom CSS: Fixed Sidebar + Sticky Mission Header + Sticky Tab Menu
+# Custom CSS: Fixed Sidebar + Sticky Mission Header + Sticky Tab Menu (Light/Dark Mode Safe)
 # ------------------------------------------------------------------
-# Tweak these 2 values if needed:
-#   --sticky-top : Streamlit's own top toolbar height (Share / star / menu)
-#   --hdr-h      : height of the Core Mission Metric header
 st.markdown("""
 <style>
     :root {
@@ -37,19 +34,20 @@ st.markdown("""
         z-index: 100;
     }
 
-    /* Sticky Mission Metric header (always visible while scrolling) */
+    /* Sticky Mission Metric header - using theme background & text color */
     div[data-testid="stElementContainer"]:has(.mission-header),
     div.element-container:has(.mission-header) {
         position: sticky;
         top: var(--sticky-top);
         z-index: 99;
-        background-color: #ffffff;
+        background-color: var(--background-color);
     }
     .mission-header {
         height: var(--hdr-h);
         display: flex;
         align-items: center;
-        background-color: #ffffff;
+        background-color: var(--background-color);
+        color: var(--text-color);
         font-size: 1.15rem;
         font-weight: 700;
         line-height: 1.3;
@@ -58,10 +56,7 @@ st.markdown("""
         padding: 0;
     }
 
-    /* Sticky Tab Menu - applies to ALL tabs, so any new tab you add
-       later automatically stays fixed under the header */
-    /* The tab bar sits inside a small wrapper, so we make the wrapper itself
-       (a direct child of the tall tabs container) sticky. */
+    /* Sticky Tab Menu - Safe for both Light & Dark modes */
     [data-testid="stTabs"] > [role="tablist"],
     [data-testid="stTabs"] > div:has(> [role="tablist"]),
     [data-testid="stTabs"] [data-baseweb="tabs"] > div:has([data-baseweb="tab-list"]),
@@ -71,11 +66,10 @@ st.markdown("""
         position: sticky !important;
         top: calc(var(--sticky-top) + var(--hdr-h));
         z-index: 98;
-        background-color: #ffffff;
+        background-color: var(--background-color) !important;
     }
 
-    /* Show the bottom chat box ONLY on the FIRST tab.
-       When the first tab is NOT selected, hide the chat input (pure CSS, no JS). */
+    /* Show the bottom chat box ONLY on the FIRST tab. */
     .stApp:has([role="tablist"] [role="tab"]:first-of-type[aria-selected="false"]) [data-testid="stBottom"],
     .stApp:has([role="tablist"] [role="tab"]:first-of-type[aria-selected="false"]) [data-testid="stChatInput"],
     .stApp:has([data-baseweb="tabs"] [data-baseweb="tab-list"] [role="tab"]:first-of-type[aria-selected="false"]) [data-testid="stBottom"],
