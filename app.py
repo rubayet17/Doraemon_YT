@@ -60,8 +60,13 @@ st.markdown("""
 
     /* Sticky Tab Menu - applies to ALL tabs, so any new tab you add
        later automatically stays fixed under the header */
-    [data-testid="stTabs"] [data-baseweb="tab-list"] {
-        position: sticky;
+    /* The tab bar sits inside a small wrapper, so we make the wrapper itself
+       (a direct child of the tall tabs container) sticky. */
+    [data-testid="stTabs"] [data-baseweb="tabs"] > div:has([data-baseweb="tab-list"]),
+    [data-testid="stTabs"] [data-baseweb="tabs"] > [data-baseweb="tab-list"],
+    [data-baseweb="tabs"] > div:has([data-baseweb="tab-list"]),
+    [data-baseweb="tabs"] > [data-baseweb="tab-list"] {
+        position: sticky !important;
         top: calc(var(--sticky-top) + var(--hdr-h));
         z-index: 98;
         background-color: #ffffff;
