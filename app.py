@@ -62,6 +62,8 @@ st.markdown("""
        later automatically stays fixed under the header */
     /* The tab bar sits inside a small wrapper, so we make the wrapper itself
        (a direct child of the tall tabs container) sticky. */
+    [data-testid="stTabs"] > [role="tablist"],
+    [data-testid="stTabs"] > div:has(> [role="tablist"]),
     [data-testid="stTabs"] [data-baseweb="tabs"] > div:has([data-baseweb="tab-list"]),
     [data-testid="stTabs"] [data-baseweb="tabs"] > [data-baseweb="tab-list"],
     [data-baseweb="tabs"] > div:has([data-baseweb="tab-list"]),
@@ -74,6 +76,8 @@ st.markdown("""
 
     /* Show the bottom chat box ONLY on the FIRST tab.
        When the first tab is NOT selected, hide the chat input (pure CSS, no JS). */
+    .stApp:has([role="tablist"] [role="tab"]:first-of-type[aria-selected="false"]) [data-testid="stBottom"],
+    .stApp:has([role="tablist"] [role="tab"]:first-of-type[aria-selected="false"]) [data-testid="stChatInput"],
     .stApp:has([data-baseweb="tabs"] [data-baseweb="tab-list"] [role="tab"]:first-of-type[aria-selected="false"]) [data-testid="stBottom"],
     .stApp:has([data-baseweb="tabs"] [data-baseweb="tab-list"] [role="tab"]:first-of-type[aria-selected="false"]) [data-testid="stChatInput"] {
         display: none !important;
@@ -429,11 +433,16 @@ components.html(
         const TOP = "calc(var(--sticky-top, 3.75rem) + var(--hdr-h, 3.4rem))";
 
         function pinTabs() {
-            doc.querySelectorAll('[data-baseweb="tab-list"]').forEach(function (list) {
-                const tabs = list.closest('[data-baseweb="tabs"]');
+            doc.querySelectorAll('[role="tablist"]').forEach(function (list) {
+                // climb until the parent also contains the tab panels
+                let child = list;
+                while (child.parentElement && !child.parentElement.querySelector('[role="tabpanel"]')) {
+                    child = child.parentElement;
+                }
+                const tabs = child.parentElement;
                 if (!tabs) return;
                 // skip nested tabs (tabs inside another tab's panel)
-                if (tabs.parentElement && tabs.parentElement.closest('[data-baseweb="tab-panel"]')) return;
+                if (tabs.parentElement && tabs.parentElement.closest('[role="tabpanel"]')) return;
 
                 // wrapper = direct child of the tall tabs container that holds the tab bar
                 let target = list;
@@ -460,9 +469,7 @@ components.html(
 
         // Show the bottom chat box ONLY when the FIRST tab is active.
         function toggleChatBox() {
-            const firstTabs = doc.querySelector('[data-baseweb="tabs"]');
-            if (!firstTabs) return;
-            const list = firstTabs.querySelector('[data-baseweb="tab-list"]');
+            const list = doc.querySelector('[role="tablist"]');
             if (!list) return;
             const firstTab = list.querySelector('[role="tab"]');
             const onFirst = !!firstTab && firstTab.getAttribute("aria-selected") === "true";
