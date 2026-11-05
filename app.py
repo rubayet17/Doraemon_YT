@@ -16,6 +16,39 @@ from llm_engine import call_master_brain, transcribe_audio
 st.set_page_config(page_title="Doraemon MAS Control Hub", page_icon="🤖", layout="wide")
 
 # ------------------------------------------------------------------
+# Custom CSS for Sticky Header & Sidebar
+# ------------------------------------------------------------------
+st.markdown("""
+<style>
+    /* Fixed Sidebar */
+    [data-testid="stSidebar"] {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+    }
+    
+    /* Fixed Top Header / Mission Metric Container */
+    .fixed-header {
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 21rem; /* Adjusts based on sidebar width */
+        background-color: #ffffff;
+        z-index: 99;
+        padding: 10px 20px 0px 20px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    /* Add padding to top so content doesn't hide under fixed header */
+    .main .block-container {
+        padding-top: 140px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ------------------------------------------------------------------
 # Supabase (safe fallback)
 # ------------------------------------------------------------------
 db_connected = False
@@ -115,7 +148,7 @@ function setTalking(on){
   stage.className = 'stage ' + (on ? 'talking' : 'idle');
   if(on){
     status.textContent='Doraemon kotha bolche... 🎙️';
-    img.src = gifSrc; // Ensure active GIF plays
+    img.src = gifSrc;
   } else {
     status.textContent='Doraemon ready, Rini!';
     bars.forEach(b=>b.style.height='4px');
@@ -195,7 +228,7 @@ def render_stage(reply=None, height=400):
 
 
 # ------------------------------------------------------------------
-# Sidebar
+# Sidebar Setup
 # ------------------------------------------------------------------
 channel_list = ["Default Channel"]
 channel_dict = {}
@@ -217,8 +250,12 @@ if db_connected:
 else:
     st.sidebar.warning("⚠️ Running in Offline UI Mode")
 
+# ------------------------------------------------------------------
+# Fixed Header Section (Core Mission Metric)
+# ------------------------------------------------------------------
+st.markdown('<div class="fixed-header">', unsafe_allow_html=True)
 st.markdown("### 🎯 Core Mission Metric: **Watch Time + Viewer Satisfaction 100% Guaranteed** (Zero Clickbait)")
-st.write("---")
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
 # Chat history
