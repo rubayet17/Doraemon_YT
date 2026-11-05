@@ -71,6 +71,13 @@ st.markdown("""
         z-index: 98;
         background-color: #ffffff;
     }
+
+    /* Show the bottom chat box ONLY on the FIRST tab.
+       When the first tab is NOT selected, hide the chat input (pure CSS, no JS). */
+    .stApp:has([data-baseweb="tabs"] [data-baseweb="tab-list"] [role="tab"]:first-of-type[aria-selected="false"]) [data-testid="stBottom"],
+    .stApp:has([data-baseweb="tabs"] [data-baseweb="tab-list"] [role="tab"]:first-of-type[aria-selected="false"]) [data-testid="stChatInput"] {
+        display: none !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
