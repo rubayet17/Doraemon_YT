@@ -451,8 +451,28 @@ components.html(
             });
         }
 
-        pinTabs();
-        new MutationObserver(pinTabs).observe(doc.body, { childList: true, subtree: true });
+        // Show the bottom chat box ONLY when the FIRST tab is active.
+        function toggleChatBox() {
+            const firstTabs = doc.querySelector('[data-baseweb="tabs"]');
+            if (!firstTabs) return;
+            const list = firstTabs.querySelector('[data-baseweb="tab-list"]');
+            if (!list) return;
+            const firstTab = list.querySelector('[role="tab"]');
+            const onFirst = !!firstTab && firstTab.getAttribute("aria-selected") === "true";
+            const box = doc.querySelector('[data-testid="stBottom"]') ||
+                        doc.querySelector('[data-testid="stChatInput"]');
+            if (box) box.style.display = onFirst ? "" : "none";
+        }
+
+        function run() { pinTabs(); toggleChatBox(); }
+
+        run();
+        new MutationObserver(run).observe(doc.body, { childList: true, subtree: true });
+        // tab switches only change aria-selected, so watch that too
+        new MutationObserver(toggleChatBox).observe(doc.body, {
+            attributes: true, subtree: true, attributeFilter: ["aria-selected"]
+        });
+        doc.addEventListener("click", function () { setTimeout(toggleChatBox, 50); }, true);
     })();
     </script>
     """,
