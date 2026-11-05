@@ -455,11 +455,21 @@ components.html(
                 target.style.background = "#ffffff";
 
                 // clear overflow on every ancestor up to the scrolling main area
+                // (but NEVER touch the real page scroller, or the page stops scrolling)
                 let a = tabs;
                 while (a && a !== doc.body) {
                     const tid = a.getAttribute && a.getAttribute("data-testid");
-                    if (tid === "stMain" || tid === "stAppViewContainer") break;
-                    if (window.parent.getComputedStyle(a).overflow !== "visible") {
+                    if (tid === "stMain" || tid === "stAppViewContainer" ||
+                        tid === "stAppScrollToBottomContainer") break;
+
+                    const cs = window.parent.getComputedStyle(a);
+                    const vh = window.parent.innerHeight;
+                    const isPageScroller =
+                        (cs.overflowY === "auto" || cs.overflowY === "scroll") &&
+                        a.clientHeight >= vh * 0.6 && a.clientHeight <= vh + 5;
+                    if (isPageScroller) break;
+
+                    if (cs.overflow !== "visible") {
                         a.style.overflow = "visible";
                     }
                     a = a.parentElement;
