@@ -2,7 +2,6 @@ name: Keep Streamlit Alive
 
 on:
   schedule:
-    # Prot 10 minute por por ping korbe
     - cron: '*/10 * * * *'
   workflow_dispatch:
 
@@ -10,6 +9,6 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Send HTTP Request to Streamlit App
+      - name: Send Full GET Request to Streamlit App
         run: |
-          curl -I https://doraemon-yt-control.streamlit.app/
+          curl -s -o /dev/null -L https://doraemon-yt-control.streamlit.app/
